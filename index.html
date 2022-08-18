@@ -13,18 +13,23 @@
     <title>Metronome</title>
 </head>
 <body>    
-    <script>        
+    <script>
         time = 90;
         totalcount = 0;
+        time = parseInt(document.getElementById("Seconds").value) * 1000;
+        myInterval = setInterval(notify, time);
         document.getElementById("Seconds").value = '60';
-        function start(wethval, wethcont) {
+        function start() {
             if(document.getElementById("thesound").value == 0) {
                 mysound = new Audio("./notify.mp3");
             } else {
                 mysound = new Audio("./notify2.mp3");
             }
+            mysound.play();
+            document.getElementById("count").innerHTML = "0";
             time = parseInt(document.getElementById("Seconds").value) * 1000;
-            setInterval(notify, time);
+            clearInterval(myInterval);
+            myInterval = setInterval(notify, time);
         }
         function notify() {
             mysound.currentTime = 0;;
