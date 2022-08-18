@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<input type="button" value="Start" onclick="start()">
+<input class="textBox" id="Seconds" type="text" width="70" required/>
+<select id="thesound" style="width:300px">
+<option value="0">Sound 1</option>
+<option value="1">Sound 2</option>
+</select>
+<p id="count"></p>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Metronome</title>
+</head>
+<body>    
+    <script>        
+        time = 90;
+        totalcount = 0;
+        document.getElementById("Seconds").value = '60';
+        function start(wethval, wethcont) {
+            if(document.getElementById("thesound").value == 0) {
+                mysound = new Audio("./notify.mp3");
+            } else {
+                mysound = new Audio("./notify2.mp3");
+            }
+            time = parseInt(document.getElementById("Seconds").value) * 1000;
+            setInterval(notify, time);
+        }
+        function notify() {
+            mysound.currentTime = 0;;
+            mysound.play();            
+            totalcount += 1;
+            document.getElementById("count").innerHTML = totalcount;
+        }        
+    </script>
+</body>
+</html>
