@@ -5,7 +5,9 @@
 <select id="thesound" style="width:300px">
 <option value="0">Sound 1</option>
 <option value="1">Sound 2</option>
+<option value="2">Sound 3</option>
 </select>
+<input type="button" value="Stop" onclick="stop()">
 <p id="count"></p>
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <head>
@@ -16,14 +18,19 @@
     <script>
         time = 90;
         totalcount = 0;
+        mysound = 0;
         time = parseInt(document.getElementById("Seconds").value) * 1000;
         myInterval = setInterval(notify, time);
         document.getElementById("Seconds").value = '60';
         function start() {
             if(document.getElementById("thesound").value == 0) {
                 mysound = new Audio("./notify.mp3");
-            } else {
+            }
+            if(document.getElementById("thesound").value == 1) {
                 mysound = new Audio("./notify2.mp3");
+            }
+            if(document.getElementById("thesound").value == 2) {
+                mysound = new Audio("./notify3.mp3");
             }
             mysound.play();
             document.getElementById("count").innerHTML = "0";
@@ -32,11 +39,15 @@
             myInterval = setInterval(notify, time);
         }
         function notify() {
-            mysound.currentTime = 0;;
+            mysound.currentTime = 0;
             mysound.play();            
             totalcount += 1;
             document.getElementById("count").innerHTML = totalcount;
-        }        
+        }
+        function stop() {
+            mysound.pause();
+            clearInterval(myInterval);
+        }
     </script>
 </body>
 </html>
