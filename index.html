@@ -6,9 +6,11 @@
 <option value="0">Sound 1</option>
 <option value="1">Sound 2</option>
 <option value="2">Sound 3</option>
+<option value="3">Sound 4</option>
 </select>
 <input type="button" value="Stop" onclick="stop()">
 <p id="count"></p>
+<p id="secondscount"></p>
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,12 +19,16 @@
 <body>    
     <script>
         time = 90;
+        seconds = 0;
         totalcount = 0;
         mysound = 0;
         time = parseInt(document.getElementById("Seconds").value) * 1000;
         myInterval = setInterval(notify, time);
+        myInterval2 = setInterval(countthis, 100000000);
         document.getElementById("Seconds").value = '60';
         function start() {
+            seconds = 0;
+            totalcount = 0;
             if(document.getElementById("thesound").value == 0) {
                 mysound = new Audio("./notify.mp3");
             }
@@ -32,21 +38,32 @@
             if(document.getElementById("thesound").value == 2) {
                 mysound = new Audio("./notify3.mp3");
             }
+            if(document.getElementById("thesound").value == 3) {
+                mysound = new Audio("./notify4.mp3");
+            }
             mysound.play();
             document.getElementById("count").innerHTML = "0";
             time = parseInt(document.getElementById("Seconds").value) * 1000;
             clearInterval(myInterval);
+            clearInterval(myInterval2);
             myInterval = setInterval(notify, time);
+            myInterval2 = setInterval(countthis, 1000);
         }
         function notify() {
+            seconds = 0;
             mysound.currentTime = 0;
             mysound.play();            
             totalcount += 1;
             document.getElementById("count").innerHTML = totalcount;
         }
+        function countthis() {
+            seconds += 1;
+            document.getElementById("secondscount").innerHTML = seconds;
+        }
         function stop() {
             mysound.pause();
             clearInterval(myInterval);
+            clearInterval(myInterval2);
         }
     </script>
 </body>
