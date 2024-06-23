@@ -205,8 +205,6 @@
             const fadeCheckbox = document.getElementById(`fade-${timer.index}`);
             if (fadeCheckbox.checked) {
                 if (timer.mysound) fadeOut(timer.mysound, 2000);
-            } else {
-                if (timer.mysound) timer.mysound.pause();
             }
             timer.seconds = 0;
             clearInterval(timer.intervalId);
