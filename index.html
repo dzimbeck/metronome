@@ -1,70 +1,258 @@
 <!DOCTYPE html>
 <html>
-<input type="button" value="Start" onclick="start()">
-<input class="textBox" id="Seconds" type="text" width="70" required/>
-<select id="thesound" style="width:300px">
-<option value="0">Sound 1</option>
-<option value="1">Sound 2</option>
-<option value="2">Sound 3</option>
-<option value="3">Sound 4</option>
-</select>
-<input type="button" value="Stop" onclick="stop()">
-<p id="count"></p>
-<p id="secondscount"></p>
-<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Metronome</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .timer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .timer-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .timer-controls input, .timer-controls select {
+            flex: 1;
+        }
+    </style>
 </head>
-<body>    
+<body>
+    <script type="text/javascript" src="./mainSW.js"></script>
+    <input type="button" value="Start" onclick="startTimers()">
+    <input type="button" value="Add Timer" onclick="addTimer()">
+    <input type="button" value="Stop" onclick="stopAll()">
+    <div class="timer-container" id="timerContainer"></div>
+    <p id="overallCount">Total Overall Count: <span id="totalCount">0</span></p>
+    <a href="https://bit.ly/trainyourbreath" target="_blank">Training videos</a>
     <script>
-        time = 90;
-        seconds = 0;
-        totalcount = 0;
-        mysound = 0;
-        time = parseInt(document.getElementById("Seconds").value) * 1000;
-        myInterval = setInterval(notify, time);
-        myInterval2 = setInterval(countthis, 100000000);
-        document.getElementById("Seconds").value = '60';
-        function start() {
-            seconds = 0;
+        let timers = [];
+        let currentIndex = 0;
+        let totalcount = 0;
+        let wakeLock = null;
+
+        var lastTouchY = 0;
+        var preventPullToRefresh = false;
+        window.document.body.addEventListener("touchstart", function(e){
+            if (e.touches.length != 1) { return; }
+            lastTouchY = e.touches[0].clientY;
+            preventPullToRefresh = window.pageYOffset == 0;
+        }, false);
+
+        window.document.body.addEventListener("touchmove", function(e){
+            var touchY = e.touches[0].clientY;
+            var touchYDelta = touchY - lastTouchY;
+            lastTouchY = touchY;
+            if (preventPullToRefresh) {
+                // To suppress pull-to-refresh it is sufficient to preventDefault the first overscrolling touchmove.
+                preventPullToRefresh = false;
+                if (touchYDelta > 0) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        }, false);
+
+        async function requestWakeLock() {
+            if(wakeLock == null) {
+                try {
+                    if ('wakeLock' in navigator) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Wake Lock is active');
+                    } else {
+                        console.log('Wake Lock API not supported');
+                    }
+                } catch (err) {
+                    console.error(`${err.name}, ${err.message}`);
+                }
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release()
+                    .then(() => {
+                        wakeLock = null;
+                        console.log('Wake Lock is released');
+                    })
+                    .catch((err) => {
+                        console.error(`${err.name}, ${err.message}`);
+                    });
+            }
+        }
+
+        requestWakeLock();
+
+        function addTimer() {
+            const timerIndex = timers.length;
+            const timerHTML = `
+                <div class="timer" id="timer-${timerIndex}">
+                    <div class="timer-controls">
+                        <input class="textBox" type="text" id="Seconds-${timerIndex}" placeholder="Seconds" value="60" required/>
+                        <select id="thesound-${timerIndex}">
+                            <option value="0">Sound 1</option>
+                            <option value="1">Sound 2</option>
+                            <option value="2">Sound 3</option>
+                            <option value="3">Sound 4</option>
+                            <option value="4">Sound 5</option>
+                            <option value="5">Sound 6</option>
+                            <option value="6">Sound 7</option>
+                        </select>
+                        <br>
+                        <input type="button" value="Remove" onclick="removeTimer(${timerIndex})">
+                    </div>                    
+                    <p>
+                    <input type="checkbox" id="fade-${timerIndex}">
+                    <label for="fade-${timerIndex}">Fade Out</label>
+                    </p>
+                    <p>Count: <span id="count-${timerIndex}">0</span></p>
+                    <p>Seconds Elapsed: <span id="secondscount-${timerIndex}">0</span></p>
+                </div>
+            `;
+            document.getElementById('timerContainer').insertAdjacentHTML('beforeend', timerHTML);
+            timers.push({
+                index: timerIndex,
+                seconds: 0,
+                totalcount: 0,
+                intervalId: null,
+                secondCountId: null,
+                mysound: null
+            });
+        }
+
+        function removeTimer(index) {
+            document.getElementById(`timer-${index}`).remove();
+            timers = timers.filter(timer => timer.index !== index);
+        }
+
+        function startTimers() {
+            if (timers.length === 0) return;
             totalcount = 0;
-            if(document.getElementById("thesound").value == 0) {
-                mysound = new Audio("./notify.mp3");
-            }
-            if(document.getElementById("thesound").value == 1) {
-                mysound = new Audio("./notify2.mp3");
-            }
-            if(document.getElementById("thesound").value == 2) {
-                mysound = new Audio("./notify3.mp3");
-            }
-            if(document.getElementById("thesound").value == 3) {
-                mysound = new Audio("./notify4.mp3");
-            }
-            mysound.play();
-            document.getElementById("count").innerHTML = "0";
-            time = parseInt(document.getElementById("Seconds").value) * 1000;
-            clearInterval(myInterval);
-            clearInterval(myInterval2);
-            myInterval = setInterval(notify, time);
-            myInterval2 = setInterval(countthis, 1000);
+            currentIndex = 0;
+            document.getElementById("totalCount").innerHTML = totalcount;
+            startTimer(currentIndex);
+            requestWakeLock();
         }
-        function notify() {
-            seconds = 0;
-            mysound.currentTime = 0;
-            mysound.play();            
+
+        function startTimer(index) {
+            if (index >= timers.length) return;
+            const timer = timers[index];
+            const secondsInput = document.getElementById(`Seconds-${timer.index}`);
+            const soundSelect = document.getElementById(`thesound-${timer.index}`);
+            const secondsValue = parseInt(secondsInput.value) * 1000;
+
+            if (isNaN(secondsValue) || secondsValue <= 0) {
+                alert(`Please enter a valid number of seconds for timer ${timer.index + 1}`);
+                return;
+            }
+
+            if (soundSelect.value == 0) {
+                timer.mysound = new Audio("./notify.mp3");
+            } else if (soundSelect.value == 1) {
+                timer.mysound = new Audio("./notify2.mp3");
+            } else if (soundSelect.value == 2) {
+                timer.mysound = new Audio("./notify3.mp3");
+            } else if (soundSelect.value == 3) {
+                timer.mysound = new Audio("./notify4.mp3");
+            } else if (soundSelect.value == 4) {
+                timer.mysound = new Audio("./bells.mp3");
+            } else if (soundSelect.value == 5) {
+                timer.mysound = new Audio("./omm.mp3");
+            } else if (soundSelect.value == 6) {
+                timer.mysound = new Audio("./recover.mp3");
+            }
+
+            timer.seconds = 0;
+            timer.mysound.currentTime = 0;
+            timer.mysound.play();
+            clearInterval(timer.intervalId);
+            clearInterval(timer.secondCountId);
+
+            document.getElementById(`count-${timer.index}`).innerHTML = timer.totalcount;
+            timer.intervalId = setInterval(() => notify(timer), secondsValue);
+            timer.secondCountId = setInterval(() => countSeconds(timer), 1000);            
+        }
+
+        function notify(timer) {            
+            timer.totalcount += 1;
             totalcount += 1;
-            document.getElementById("count").innerHTML = totalcount;
+            document.getElementById(`count-${timer.index}`).innerHTML = timer.totalcount;
+            document.getElementById("totalCount").innerHTML = totalcount;
+            countSeconds(timer);
+            const fadeCheckbox = document.getElementById(`fade-${timer.index}`);
+            if (fadeCheckbox.checked) {
+                if (timer.mysound) fadeOut(timer.mysound, 2000);
+            } else {
+                if (timer.mysound) timer.mysound.pause();
+            }
+            timer.seconds = 0;
+            clearInterval(timer.intervalId);
+            clearInterval(timer.secondCountId);
+            currentIndex = (currentIndex + 1) % timers.length;
+            startTimer(currentIndex);
         }
-        function countthis() {
-            seconds += 1;
-            document.getElementById("secondscount").innerHTML = seconds;
+
+        function countSeconds(timer) {
+            timer.seconds += 1;
+            document.getElementById(`secondscount-${timer.index}`).innerHTML = timer.seconds;
         }
-        function stop() {
-            mysound.pause();
-            clearInterval(myInterval);
-            clearInterval(myInterval2);
+
+        function stopAll() {            
+            timers.forEach(timer => {
+                if (timer.mysound) timer.mysound.pause();
+                clearInterval(timer.intervalId);
+                clearInterval(timer.secondCountId);
+            });
+            releaseWakeLock();
         }
+
+        function fadeOut(audio, duration) {
+            const step = 0.01;
+            const fadeInterval = duration * step;
+            let volume = audio.volume;
+            const fade = setInterval(() => {
+                volume -= step;
+                if (volume <= 0) {
+                    clearInterval(fade);
+                    audio.pause();
+                    audio.volume = 1; // Reset volume for the next play
+                } else {
+                    audio.volume = volume;
+                }
+            }, fadeInterval);
+        }
+
+        window.onload = function() {
+            addTimer();
+        };
+    </script>
+    <script>
+      if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('sw.js')
+      }
     </script>
 </body>
 </html>
