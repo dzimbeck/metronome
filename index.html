@@ -44,6 +44,7 @@
 </head>
 <body>
     <script type="text/javascript" src="./mainSW.js"></script>
+    <video id="video" muted autoplay style="position: fixed; top: 0; left: 0; width: 10px; height: 10px; z-index: -100;"></video>
     <input type="button" value="Start" onclick="startTimers()">
     <input type="button" value="Add Timer" onclick="addTimer()">
     <input type="button" value="Stop" onclick="stopAll()">
@@ -151,6 +152,8 @@
         }
 
         function startTimers() {
+            document.getElementById("video").muted = false;
+            video.muted = false;
             if (timers.length === 0) return;
             totalcount = 0;
             currentIndex = 0;
@@ -158,6 +161,16 @@
             startTimer(currentIndex);
             requestWakeLock();
         }
+
+        const audioFiles = [
+            new Audio("./notify.mp3"),
+            new Audio("./notify2.mp3"),
+            new Audio("./notify3.mp3"),
+            new Audio("./notify4.mp3"),
+            new Audio("./bells.mp3"),
+            new Audio("./omm.mp3"),
+            new Audio("./recover.mp3")
+        ];
 
         function startTimer(index) {
             if (index >= timers.length) return;
@@ -172,19 +185,19 @@
             }
 
             if (soundSelect.value == 0) {
-                timer.mysound = new Audio("./notify.mp3");
+                timer.mysound = audioFiles[0];
             } else if (soundSelect.value == 1) {
-                timer.mysound = new Audio("./notify2.mp3");
+                timer.mysound = audioFiles[1];
             } else if (soundSelect.value == 2) {
-                timer.mysound = new Audio("./notify3.mp3");
+                timer.mysound = audioFiles[2];
             } else if (soundSelect.value == 3) {
-                timer.mysound = new Audio("./notify4.mp3");
+                timer.mysound = audioFiles[3];
             } else if (soundSelect.value == 4) {
-                timer.mysound = new Audio("./bells.mp3");
+                timer.mysound = audioFiles[4];
             } else if (soundSelect.value == 5) {
-                timer.mysound = new Audio("./omm.mp3");
+                timer.mysound = audioFiles[5];
             } else if (soundSelect.value == 6) {
-                timer.mysound = new Audio("./recover.mp3");
+                timer.mysound = audioFiles[6];
             }
 
             timer.seconds = 0;
