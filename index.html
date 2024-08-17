@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="manifest" href="manifest.json">
+    <link href="favicon.png" rel="icon" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Metronome</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .timer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .timer-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .timer-controls input, .timer-controls select {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/javascript" src="./mainSW.js"></script>
+    <input type="button" value="Start" onclick="startTimers()">
+    <input type="button" value="Add Timer" onclick="addTimer()">
+    <input type="button" value="Stop" onclick="stopAll()">
+    <div class="timer-container" id="timerContainer"></div>
+    <p id="overallCount">Total Overall Count: <span id="totalCount">0</span></p>
+    <a href="https://bit.ly/trainyourbreath" target="_blank">Training videos</a>
+    <script>
+        let timers = [];
+        let currentIndex = 0;
+        let totalcount = 0;
+        let wakeLock = null;
+
+        var lastTouchY = 0;
+        var preventPullToRefresh = false;
+        window.document.body.addEventListener("touchstart", function(e){
+            if (e.touches.length != 1) { return; }
+            lastTouchY = e.touches[0].clientY;
+            preventPullToRefresh = window.pageYOffset == 0;
+        }, false);
+
+        window.document.body.addEventListener("touchmove", function(e){
+            var touchY = e.touches[0].clientY;
+            var touchYDelta = touchY - lastTouchY;
+            lastTouchY = touchY;
+            if (preventPullToRefresh) {
+                // To suppress pull-to-refresh it is sufficient to preventDefault the first overscrolling touchmove.
+                preventPullToRefresh = false;
+                if (touchYDelta > 0) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        }, false);
+
+        async function requestWakeLock() {
+            if(wakeLock == null) {
+                try {
+                    if ('wakeLock' in navigator) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Wake Lock is active');
+                    } else {
+                        console.log('Wake Lock API not supported');
+                    }
+                } catch (err) {
+                    console.error(`${err.name}, ${err.message}`);
+                }
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release()
+                    .then(() => {
+                        wakeLock = null;
+                        console.log('Wake Lock is released');
+                    })
+                    .catch((err) => {
+                        console.error(`${err.name}, ${err.message}`);
+                    });
+            }
+        }
+
+        requestWakeLock();
+
+        function addTimer() {
+            const timerIndex = timers.length;
+            const timerHTML = `
+                <div class="timer" id="timer-${timerIndex}">
+                    <div class="timer-controls">
+                        <input class="textBox" type="text" id="Seconds-${timerIndex}" placeholder="Seconds" value="60" required/>
+                        <select id="thesound-${timerIndex}">
+                            <option value="0">Sound 1</option>
+                            <option value="1">Sound 2</option>
+                            <option value="2">Sound 3</option>
+                            <option value="3">Sound 4</option>
+                            <option value="4">Sound 5</option>
+                            <option value="5">Sound 6</option>
+                            <option value="6">Sound 7</option>
+                        </select>
+                        <br>
+                        <input type="button" value="Remove" onclick="removeTimer(${timerIndex})">
+                    </div>
+                    <p>
+                    <input type="checkbox" id="fade-${timerIndex}">
+                    <label for="fade-${timerIndex}">Fade Out</label>
+                    </p>
+                    <p>Count: <span id="count-${timerIndex}">0</span></p>
+                    <p>Seconds Elapsed: <span id="secondscount-${timerIndex}">0</span></p>
+                </div>
+            `;
+            document.getElementById('timerContainer').insertAdjacentHTML('beforeend', timerHTML);
+            timers.push({
+                index: timerIndex,
+                seconds: 0,
+                totalcount: 0,
+                intervalId: null,
+                secondCountId: null,
+                mysound: null
+            });
+        }
+
+        function removeTimer(index) {
+            document.getElementById(`timer-${index}`).remove();
+            timers = timers.filter(timer => timer.index !== index);
+        }
+
+        let xtime = "?v=" + (new Date().getTime()).toString();
+
+        function startTimers() {
+            if (timers.length === 0) return;
+            totalcount = 0;
+            currentIndex = 0;
+            document.getElementById("totalCount").innerHTML = totalcount;
+            for (let index=0;index<timers.length;index+=1) {
+                const soundSelect = document.getElementById(`thesound-${timers[index].index}`);                
+                if (soundSelect.value == 0) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/notify.mp3"+xtime);
+                } else if (soundSelect.value == 1) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/notify2.mp3"+xtime);
+                } else if (soundSelect.value == 2) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/notify3.mp3"+xtime);
+                } else if (soundSelect.value == 3) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/notify4.mp3"+xtime);
+                } else if (soundSelect.value == 4) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/bells.mp3"+xtime);
+                } else if (soundSelect.value == 5) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/omm.mp3"+xtime);
+                } else if (soundSelect.value == 6) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/recover.mp3"+xtime);
+                }
+            }
+            timers[currentIndex].mysound.currentTime = 0;
+            timers[currentIndex].mysound.play();
+            startTimer(currentIndex,1);
+            requestWakeLock();
+        }
+
+        function startTimer(index, start=0) {
+            if (index >= timers.length) return;
+            const timer = timers[index];
+            const secondsInput = document.getElementById(`Seconds-${timer.index}`);
+            const secondsValue = parseInt(secondsInput.value) * 1000;
+
+            if (isNaN(secondsValue) || secondsValue <= 0) {
+                alert(`Please enter a valid number of seconds for timer ${timer.index + 1}`);
+                return;
+            }
+
+            timer.seconds = 0;
+            if(start==0) {
+                timers[index].mysound.currentTime = 0;
+                timers[index].mysound.play();
+            }
+            clearInterval(timer.intervalId);
+            clearInterval(timer.secondCountId);
+
+            document.getElementById(`count-${timer.index}`).innerHTML = timer.totalcount;
+            timer.intervalId = setInterval(() => notify(index), secondsValue);
+            timer.secondCountId = setInterval(() => countSeconds(timer), 1000);            
+        }
+
+        function notify(index) {            
+            timers[index].totalcount += 1;
+            totalcount += 1;
+            document.getElementById(`count-${timers[index].index}`).innerHTML = timers[index].totalcount;
+            document.getElementById("totalCount").innerHTML = totalcount;
+            countSeconds(timers[index]);
+            const fadeCheckbox = document.getElementById(`fade-${timers[index].index}`);
+            if (fadeCheckbox.checked) {
+                if (timers[index].mysound) fadeOut(index, 2000);
+            }
+            timers[index].seconds = 0;
+            clearInterval(timers[index].intervalId);
+            clearInterval(timers[index].secondCountId);
+            currentIndex = (currentIndex + 1) % timers.length;
+            startTimer(currentIndex);
+        }
+
+        function countSeconds(timer) {
+            timer.seconds += 1;
+            document.getElementById(`secondscount-${timer.index}`).innerHTML = timer.seconds;
+        }
+
+        function stopAll() {            
+            timers.forEach(timer => {
+                if (timer.mysound) timer.mysound.pause();
+                clearInterval(timer.intervalId);
+                clearInterval(timer.secondCountId);
+            });
+            releaseWakeLock();
+        }
+
+        function fadeOut(index, duration) {
+            const step = 0.01;
+            const fadeInterval = duration * step;
+            let volume = timers[index].mysound.volume;
+            const fade = setInterval(() => {
+                volume -= step;
+                if (volume <= 0) {
+                    clearInterval(fade);
+                    timers[index].mysound.pause();
+                    timers[index].mysound.volume = 1; // Reset volume for the next play
+                } else {
+                    timers[index].mysound.volume = volume;
+                }
+            }, fadeInterval);
+        }
+
+        window.onload = function() {
+            addTimer();
+        };
+    </script>
+    <script>
+      if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('sw.js')
+      }
+    </script>
+</body>
+</html>
