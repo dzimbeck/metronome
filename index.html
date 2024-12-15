@@ -51,8 +51,8 @@
     <p id="overallCount">Total Overall Count: <span id="totalCount">0</span></p>
     <a href="https://bit.ly/trainyourbreath" target="_blank">Training videos</a>
     <p></p>
-    <div class="timer" id="nextButton" style="width: 400px; height: 400px; text-align: center; align-items: center; display: grid; font-size: 50px" onclick="nextTime()">Next</div>
-    <div class="timer" id="list-view" style="width: 400px; height: 200px; overflow-y: auto; text-align: center; align-items: center;"></div>
+    <div class="timer" id="nextButton" style="width: 350px; height: 400px; text-align: center; align-items: center; display: grid; font-size: 50px" onclick="nextTime()">Next</div>
+    <div class="timer" id="list-view" style="width: 350px; height: 200px; overflow-y: auto; text-align: center; align-items: center;"></div>
     <script>
         let timers = [];
         let currentIndex = 0;
@@ -150,9 +150,9 @@
                             <option value="29">Set 3</option>
                             <option value="30">Tibetan Bowl</option>
                         </select>
-                        <br>
-                        <input type="button" value="Remove" onclick="removeTimer(${timerIndex})">
+                        <br>                        
                     </div>
+                    <input type="button" value="Remove" onclick="removeTimer(${timerIndex})">
                     <p>
                     <input type="checkbox" id="fade-${timerIndex}">
                     <label for="fade-${timerIndex}">Fade Out</label>
