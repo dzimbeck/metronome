@@ -115,13 +115,37 @@
                     <div class="timer-controls">
                         <input class="textBox" type="text" id="Seconds-${timerIndex}" placeholder="Seconds" value="60" required/>
                         <select id="thesound-${timerIndex}">
-                            <option value="0">Sound 1</option>
-                            <option value="1">Sound 2</option>
-                            <option value="2">Sound 3</option>
-                            <option value="3">Sound 4</option>
-                            <option value="4">Sound 5</option>
-                            <option value="5">Sound 6</option>
-                            <option value="6">Sound 7</option>
+                            <option value="0">Bell 1</option>
+                            <option value="1">Bell 2</option>
+                            <option value="2">Two bells</option>
+                            <option value="3">Notify</option>
+                            <option value="4">Multiple bells</option>
+                            <option value="5">Omm bell</option>
+                            <option value="6">Recover</option>
+                            <option value="7">Bronze bowl 1</option>
+                            <option value="8">Bronze bowl 2</option>
+                            <option value="9">Bronze bowl 3</option>
+                            <option value="10">Bronze bowl 4</option>
+                            <option value="11">Chakra bowl 1</option>
+                            <option value="12">Chakra bowl 2</option>
+                            <option value="13">Chakra bowl 3</option>
+                            <option value="14">Golden bowl 1</option>
+                            <option value="15">Golden bowl 2</option>
+                            <option value="16">Golden bowl 3</option>
+                            <option value="17">Golden bowl 4</option>
+                            <option value="18">Golden bowl 5</option>
+                            <option value="19">Golden bowl 6</option>
+                            <option value="20">Golden bowl 7</option>
+                            <option value="21">Golden bowl 8</option>
+                            <option value="22">Moon bowl 1</option>
+                            <option value="23">Moon bowl 2</option>
+                            <option value="24">Moon bowl 3</option>
+                            <option value="25">Moon bowl 4</option>
+                            <option value="26">Moon bowl 5</option>
+                            <option value="27">Set 1</option>
+                            <option value="28">Set 2</option>
+                            <option value="29">Set 3</option>
+                            <option value="30">Tibetan Bowl</option>
                         </select>
                         <br>
                         <input type="button" value="Remove" onclick="removeTimer(${timerIndex})">
@@ -173,6 +197,54 @@
                     timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/omm.mp3"+xtime);
                 } else if (soundSelect.value == 6) {
                     timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/recover.mp3"+xtime);
+                } else if (soundSelect.value == 7) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Bronze-bowl-1.mp3"+xtime);
+                } else if (soundSelect.value == 8) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Bronze-bowl-2.mp3"+xtime);
+                } else if (soundSelect.value == 9) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Bronze-bowl-3.mp3"+xtime);
+                } else if (soundSelect.value == 10) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Bronze-bowl-4.mp3"+xtime);
+                } else if (soundSelect.value == 11) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Chakra-Bowl-1.mp3"+xtime);
+                } else if (soundSelect.value == 12) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Chakra-Bowl-2.mp3"+xtime);
+                } else if (soundSelect.value == 13) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Chakra-Bowl-3.mp3"+xtime);
+                } else if (soundSelect.value == 14) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-1.mp3"+xtime);
+                } else if (soundSelect.value == 15) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-2.mp3"+xtime);
+                } else if (soundSelect.value == 16) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-3.mp3"+xtime);
+                } else if (soundSelect.value == 17) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-4.mp3"+xtime);
+                } else if (soundSelect.value == 18) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-5.mp3"+xtime);
+                } else if (soundSelect.value == 19) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-6.mp3"+xtime);
+                } else if (soundSelect.value == 20) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-7.mp3"+xtime);
+                } else if (soundSelect.value == 21) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Golden-Bowl-8.mp3"+xtime);
+                } else if (soundSelect.value == 22) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Moon-Bowl-1.mp3"+xtime);
+                } else if (soundSelect.value == 23) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Moon-Bowl-2.mp3"+xtime);
+                } else if (soundSelect.value == 24) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Moon-Bowl-3.mp3"+xtime);
+                } else if (soundSelect.value == 25) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Moon-Bowl-4.mp3"+xtime);
+                } else if (soundSelect.value == 26) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Moon-Bowl-5.mp3"+xtime);
+                } else if (soundSelect.value == 27) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Set-1.mp3"+xtime);
+                } else if (soundSelect.value == 28) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Set-2.mp3"+xtime);
+                } else if (soundSelect.value == 29) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Set-3.mp3"+xtime);
+                } else if (soundSelect.value == 30) {
+                    timers[index].mysound = new Audio("https://dzimbeck.github.io/metronome/Tibetan-Bowl.mp3"+xtime);
                 }
             }
             timers[currentIndex].mysound.currentTime = 0;
