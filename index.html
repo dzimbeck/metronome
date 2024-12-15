@@ -50,6 +50,9 @@
     <div class="timer-container" id="timerContainer"></div>
     <p id="overallCount">Total Overall Count: <span id="totalCount">0</span></p>
     <a href="https://bit.ly/trainyourbreath" target="_blank">Training videos</a>
+    <p></p>
+    <div class="timer" id="nextButton" style="width: 400px; height: 400px; text-align: center; align-items: center; display: grid; font-size: 50px" onclick="nextTime()">Next</div>
+    <div class="timer" id="list-view" style="width: 400px; height: 200px; overflow-y: auto; text-align: center; align-items: center;"></div>
     <script>
         let timers = [];
         let currentIndex = 0;
@@ -292,6 +295,40 @@
             clearInterval(timers[index].secondCountId);
             currentIndex = (currentIndex + 1) % timers.length;
             startTimer(currentIndex);
+        }
+
+        var currentTimes = [];
+        function nextTime() {
+            const div = document.getElementById('list-view');
+            const currentTime = timers[currentIndex].seconds; // Get current time value
+            
+            // Add current time to the list
+            currentTimes.push(currentTime);
+
+            // Add the new time to the list view
+            const newTime = document.createElement('div');
+            newTime.innerText = "Time: " + currentTime;
+            div.appendChild(newTime);
+
+            // Calculate the average time
+            const average = currentTimes.reduce((acc, time) => acc + time, 0) / currentTimes.length;
+
+            // Check if the average element exists, if so, remove it
+            const existingAverage = document.getElementById('average');
+            if (existingAverage) {
+                existingAverage.remove();
+            }
+
+            // Add or recreate the average display at the bottom
+            const averageDiv = document.createElement('div');
+            averageDiv.id = 'average';
+            averageDiv.innerText = "Average Time: " + average.toFixed(2);
+            div.appendChild(averageDiv);
+
+            // Scroll to the bottom
+            div.scrollTop = div.scrollHeight;
+
+            notify(currentIndex); // Trigger your notify function
         }
 
         function countSeconds(timer) {
